@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Receipt Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    video, canvas {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    button {
+      margin-top: 12px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .status {
+      margin-top: 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scan Receipt</h1>
+  <video id="video" autoplay></video>
+  <br />
+  <button id="capture">Capture</button>
+  <div class="status" id="status"></div>
+
+  <canvas id="canvas" style="display: none;"></canvas>
+
+  <script type="module">
+    import { createWorker } from 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.1/+esm';
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://cwfqevyvpfbjibdiaooh.supabase.co',
+      'YOUR_SUPABASE_ANON_KEY' // replace with your anon key
+    );
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture');
+    const status = document.getElementById('status');
+
+    // Access webcam
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream;
+    }).catch(err => {
+      console.error('Camera error:', err);
+      alert('Unable to access camera.');
+    });
+
+    captureButton.addEventListener('click', async () => {
+      status.textContent = 'Capturing image...';
+      
+      // Draw current frame to canvas
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageDataUrl = canvas.toDataURL('image/png');
+
+      status.textContent = 'Scanning text...';
+
+      const worker = await createWorker('eng');
+      const { data: { text } } = await worker.recognize(imageDataUrl);
+      await worker.terminate();
+
+      status.textContent = 'Processing items...';
+
+      const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+      const itemRegex = /^(.*?)(\d+(?:\.\d{1,2})?)$/;
+
+      const parsedItems = [];
+
+      for (let line of lines) {
+        const match = line.match(itemRegex);
+        if (match) {
+          const name = match[1].trim();
+          const amount = parseFloat(match[2]);
+          if (name && !isNaN(amount)) {
+            parsedItems.push({
+              name,
+              total_expense: amount,
+              unit_price: amount,
+              quantity: 1
+            });
+          }
+        }
+      }
+
+      if (parsedItems.length === 0) {
+        status.textContent = 'No valid items found in the scan.';
+        return;
+      }
+
+      // Insert into receipt_scans
+      const scanDate = new Date().toISOString();
+      const { data: scanData, error: scanError } = await supabase
+        .from('receipt_scans')
+        .insert([{ scan_date: scanDate }])
+        .select()
+        .single();
+
+      if (scanError) {
+        status.textContent = 'Failed to save scan.';
+        console.error(scanError);
+        return;
+      }
+
+      const scanId = scanData.scan_id;
+
+      // Add scan_id and date to each item
+      const receiptItems = parsedItems.map(item => ({
+        ...item,
+        scan_id: scanId,
+        scan_date: scanDate
+      }));
+
+      // Insert items into receipt_list
+      const { error: itemError } = await supabase
+        .from('receipt_list')
+        .insert(receiptItems);
+
+      if (itemError) {
+        status.textContent = 'Failed to save receipt items.';
+        console.error(itemError);
+        return;
+      }
+
+      status.textContent = 'Scan complete. Redirecting...';
+
+      // Redirect to scan list page
+      window.location.href = `scan-list.html?scan_id=${scanId}`;
+    });
+  </script>
+</body>
+</html>

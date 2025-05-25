@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expense Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    .container {
+      padding: 16px;
+      padding-bottom: 80px;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    .expense-summary {
+      background-color: #66D2CE;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .expense-summary p {
+      margin: 0;
+      font-weight: bold;
+      color: white;
+      margin-right: 246px;
+    }
+
+    .expense-summary h2 {
+      margin: 20px 0 0;
+      color: #222;
+      font-size: 30px;
+      font-weight: 900;
+    }
+
+    h3 {
+      margin-bottom: 10px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 2px solid black;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 2px solid black;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #66D2CE;
+      color: #222;
+    }
+
+    .navbar {
+            display: flex;
+            justify-content: space-around;
+            padding: 7px 0;
+            background: #f0fff4;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 404px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 -3px -5px rgba(0, 0, 0, 0.1);
+            border: 2px solid lightblue;
+        }
+
+        .nav-item img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+        }
+
+        input {
+            width: 100%;
+            border: none;
+            text-align: center;
+        }
+
+        input:focus {
+            outline: none;
+            border-bottom: 1px solid gray;
+        }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="expense-summary">
+      <p>Total Expenses:</p>
+      <h2>₱1,231.86</h2>
+    </div>
+
+    <h3>Receipt List:</h3>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1.</td><td>Large Eggs</td><td>Food</td><td>₱336.00</td><td>04/22/2025</td></tr>
+          <tr><td>2.</td><td>Milk</td><td>Food</td><td>₱100.08</td><td>04/22/2025</td></tr>
+          <tr><td>3.</td><td>Cottage Cheese</td><td>Food</td><td>₱91.54</td><td>04/22/2025</td></tr>
+          <tr><td>4.</td><td>Instant Yeast</td><td>Food</td><td>₱67.02</td><td>04/22/2025</td></tr>
+          <tr><td>5.</td><td>Cherry Tomatoes</td><td>Food</td><td>₱213.92</td><td>04/22/2025</td></tr>
+          <tr><td>6.</td><td>Bread</td><td>Food</td><td>₱38.08</td><td>04/22/2025</td></tr>
+          <tr><td>7.</td><td>Avocado</td><td>Food</td><td>₱120.04</td><td>04/22/2025</td></tr>
+          <tr><td>8.</td><td>Cheddar Cheese</td><td>Food</td><td>₱136.64</td><td>04/22/2025</td></tr>
+          <tr><td>9.</td><td>Chocolate Cookie</td><td>Food</td><td>₱128.24</td><td>04/22/2025</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <div class="nav-item"><img src="home_icon.png" alt="Home"></div>
+    <div class="nav-item"><img src="analysis_icon.jpeg" alt="Chart"></div>
+    <div class="nav-item"><img src="scanner_icon.png" class="active" alt="Scan"></div>
+    <div class="nav-item"><img src="manual_icon.png" alt="List"></div>
+    <div class="nav-item"><img src="profile_icon.jpeg" alt="Profile"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scan List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background-color: #f1f1f1;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .total-card {
+      margin-top: 20px;
+      padding: 16px;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      font-size: 18px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      text-decoration: none;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <a href="homepage.html" class="back-link">&#8592; Back to Home</a>
+  <h1>Receipt Items</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Name</th>
+        <th>Qty</th>
+        <th>Unit Price</th>
+        <th>Amount</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="receiptBody">
+      <!-- Receipt rows go here -->
+    </tbody>
+  </table>
+
+  <div class="total-card">
+    Total Expenses: <strong id="total">₱0.00</strong>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      "https://bwpzqbaemdcwwnreafgt.supabase.co",
+       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3cHpxYmFlbWRjd3ducmVhZmd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxODAwNTEsImV4cCI6MjA2Mzc1NjA1MX0.TcKFYp5sD9WG8bmu9WmFp4CI-SP7Al1WnDkPVYJYHGc" // replace with your key
+    );
+
+    const receiptBody = document.getElementById('receiptBody');
+    const totalEl = document.getElementById('total');
+
+    // Get scan_id from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const scanId = urlParams.get('scan_id');
+
+    if (!scanId) {
+      alert('No scan_id found in URL!');
+    } else {
+      fetchItems(scanId);
+    }
+
+    async function fetchItems(scanId) {
+      const { data, error } = await supabase
+        .from('receipt_list')
+        .select('*')
+        .eq('scan_id', scanId)
+        .order('receipt_id', { ascending: true });
+
+      if (error) {
+        alert('Error fetching receipts: ' + error.message);
+        console.error(error);
+        return;
+      }
+
+      let total = 0;
+
+      data.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.quantity ?? 1}</td>
+          <td>₱${(item.unit_price || 0).toFixed(2)}</td>
+          <td>₱${(item.total_expense || 0).toFixed(2)}</td>
+          <td>${item.scan_date ? new Date(item.scan_date).toLocaleDateString() : '—'}</td>
+        `;
+        total += item.total_expense || 0;
+        receiptBody.appendChild(tr);
+      });
+
+      totalEl.textContent = `₱${total.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
